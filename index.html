@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-widht, initial-scale=1.0" />
+    <title>A+B^2</title>
+    <link rel="icon" href="H:/home/ec2-user/YottDhee/My-MBP-Website/images/web_icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Salsa&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="StyleSheet1.css" />
+</head>
+
+<body>
+    <div id="background">
+        <div id="login">
+            <hr class="groove" style="padding: 20px; width: 90%; margin: -4px" />
+            <h1 class="header">Appearance Begrüßung</h1>
+            <h2 class="welcome">Welcome, Let's Login!</h2>
+            <form method="post">
+                <center id="credentials">
+                        <div class="one">
+                            <input type="text" placeholder="  Username, or Email ID" />
+                        </div>
+                        <div class="two">
+                            <input type="password" placeholder="  Password" />
+                        </div>
+                        <div class="three" onclick="window.location.href='file:/home/ec2-user/YottDhee/My-MBP-Website/HTMLPage2.html'; buttonclicked()">
+                            <input type="button" value="Log in" />
+                        </div>
+                </center>
+            </form>
+        </div>
+    </div>
+    <script>
+        function getZoomLevel() {
+            return window.devicePixelRatio || 1;
+        }
+
+        function adjustDivSize() {
+            const zoomLevel = getZoomLevel();
+            const fixedDiv = document.querySelector('#login');
+            fixedDiv.style.transform = `scale(${1 / zoomLevel})`;
+        }
+
+        window.addEventListener('resize', adjustDivSize);
+        window.addEventListener('DOMContentLoaded', adjustDivSize);
+    </script>
+</body>
+</html>
