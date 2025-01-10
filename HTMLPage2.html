@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A+B^2</title>
+    <link rel="icon" href="H:\MyWebProject\images\web_icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Salsa&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="StyleSheet1.1.css" />
+</head>
+<body>
+    <div id="element_container">
+        <div class="oval" id="oval1">
+            <div class="styled_placeholder" id="fname_placeholder">
+                First Name <span class="highlight">*</span>
+            </div>
+            <input type="text" class="inputs" id="input1">
+        </div>
+
+        <div class="oval" id="oval2">
+            <div class="styled_placeholder" id="lname_placeholder">
+                Last Name <span class="highlight">*</span>
+            </div>
+            <input type="text" class="inputs" id="input2" />
+        </div>
+
+        <div class="oval" id="oval3">
+            <div class="styled_placeholder" id="email_placeholder">
+                E-Mail Address <span class="highlight">*</span>
+            </div>
+            <input type="email" class="inputs" id="input3" />
+        </div>
+
+        <div class="oval" id="oval4">
+            <div class="styled_placeholder" id="phno_placeholder">
+                Phone Number <span class="highlight">*</span>
+            </div>
+            <input type="tel" class="inputs" id="input4" />
+        </div>
+
+        <div>
+            <video autoplay="autoplay" id="videoElement"></video>
+        </div>
+
+        <button class="button" id="capture">
+            <span>CAPTURE & SAVE</span>
+        </button>
+    </div>
+
+    <div class="popup_overlay"></div>
+    <div class="popup-containerbg">
+        <div class="popup-container">
+            <div class="details-container">
+                <h2>FIRST NAME:</h2>
+                <h3 class="h3fname"></h3>
+                <h2>LAST NAME:</h2>
+                <h3 class="h3lname"></h3>
+                <h2>E-MAIL:</h2>
+                <h3 class="h3email"></h3>
+                <h2>PHONE No.:</h2>
+                <h3 class="h3phone"></h3>
+                <div class="buttons-container">
+                    <button type="button" id="back">RECHECK</button>
+                    <button type="button" id="confirm_download">CONFIRM</button>
+                </div>
+            </div>
+            <div class="image-container">
+                <canvas id="photo" style="display:none;"></canvas>
+                <img id="photo-img" alt="Captured Photo">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ovals = document.querySelectorAll('.oval');
+
+            ovals.forEach(oval => {
+                const inputField = oval.querySelector('.inputs');
+                const styledPlaceholder = oval.querySelector('.styled_placeholder');
+
+                inputField.addEventListener('focus', () => {
+                    styledPlaceholder.style.display = 'none';
+                });
+
+                inputField.addEventListener('blur', () => {
+                    if (!inputField.value) {
+                        styledPlaceholder.style.display = 'block';
+                    }
+                });
+
+                // Initial check if input is already filled
+                if (inputField.value) {
+                    styledPlaceholder.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    <script>
+        // Access the webcam and display the video stream
+        const video = document.getElementById('videoElement');
+        const capture_save_Button = document.getElementById('capture');
+        const canvas = document.getElementById('photo');
+        const photoImg = document.getElementById('photo-img');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err_msg => {
+                console.error("Error accessing the camera: " + err_msg);
+            });
+
+        // Selecting the popupoverlay div element
+        const resultedfirstname = document.querySelector(".h3fname");
+        const resultedlastname = document.querySelector(".h3lname");
+        const resultedemail = document.querySelector(".h3email");
+        const resultedphone = document.querySelector(".h3phone");
+
+        // Selecting the popupoverlay div element
+        const popup_overlay = document.querySelector(".popup_overlay");
+        const popup_container_background = document.querySelector(".popup-containerbg");
+
+        let firstname; // Declare firstname variable in a scope accessible to both event listeners
+        let dataURL; // Declare dataURL variable in a scope accessible to both event listeners
+
+        // Capture the image from the video stream & Handle Input Informations
+        document.getElementById('capture').addEventListener('click', (event) => {
+            event.preventDefault();
+
+            const context = canvas.getContext('2d');
+            const desiredWidth = 280;  // Set to your desired width
+            const desiredHeight = 360; // Set to your desired height
+            canvas.width = desiredWidth;
+            canvas.height = desiredHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            dataURL = canvas.toDataURL('image/png'); // Store dataURL in the variable
+            photoImg.src = dataURL;
+            photoImg.style.display = 'block';
+
+            firstname = document.getElementById('input1').value; // Store firstname in the outer scope variable
+            const lastname = document.getElementById('input2').value;
+            const email = document.getElementById('input3').value;
+            const phone = document.getElementById('input4').value;
+
+            // Validate form fields
+            if (firstname === "" || lastname === "" || email === "" || phone === "") {
+                alert("Please fill out all fields.");
+                return;
+            }
+
+            resultedfirstname.textContent = firstname;
+            resultedlastname.textContent = lastname;
+            resultedemail.textContent = email;
+            resultedphone.textContent = "(+91) " + phone;
+
+            popup_overlay.style.display = "block";
+            popup_container_background.style.display = "block";
+        });
+
+        // Recheck Whether the Inputs are all written correctly
+        document.getElementById('back').addEventListener('click', () => {
+            popup_overlay.style.display = "none";
+            popup_container_background.style.display = "none";
+        });
+
+        const confirm_download = document.getElementById('confirm_download');
+
+        // Confirm will Save the input data & Downloads the Image
+        confirm_download.addEventListener('click', async () => {
+            popup_overlay.style.display = "none";
+            popup_container_background.style.display = "none";
+
+            // Create a hidden a element and set its download attribute
+            const downloadLink = document.createElement('a');
+            downloadLink.href = dataURL;
+            downloadLink.download = firstname + " " + resultedlastname.textContent + '.png'; // Set the desired filename here
+
+            // Append the a element to the body
+            document.body.appendChild(downloadLink);
+
+            // Programmatically trigger a click on the a element
+            downloadLink.click();
+
+            // Remove the a element from the document
+            document.body.removeChild(downloadLink); 
+
+
+            // Merging Google Sheets to collect the data
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzxkMGs_8toCUMitlnU2aeTNSwJ7f5KxBIv3YvNt2ZKrZ1ia1UoSeHDA5WIvh0cQUZKeA/exec'
+
+            // Send data to the server to save in Excel
+            const data = new URLSearchParams();
+            data.append('firstname', resultedfirstname.textContent);
+            data.append('lastname', resultedlastname.textContent);
+            data.append('email', resultedemail.textContent);
+            data.append('phone', resultedphone.textContent);
+
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: data
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+
+                const result = await response.text();
+                console.log('Success!', result);
+            } catch (error) {
+                console.error('Error!', error.message);
+                alert('Error saving data. Please try again.');
+            }
+
+            // Optionally, you can reload the page if needed
+            location.reload();
+        });
+
+    </script>
+    
+</body>
+</html>
