@@ -2,50 +2,38 @@ pipeline {
     agent any
 
     environment {
-        // Define paths for easier reference
-        WEB_SERVER_PATH = '/var/www/html'
-        REPO_DIR = 'My-MBP-Website' // Adjust based on your repository
+        EC2_PUBLIC_IP = '13.126.220.169' // Replace with your EC2 instance's public IP
+        DEPLOY_PORT = '5000' // Replace with your desired port (e.g., 80 for HTTP or 8080 for testing)
+        WEB_DIR = '/home/ec2-user/webapp' // Path on the EC2 instance to host your webpage
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the repository and pull latest changes
+                // Pull the latest changes from the repository
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Deploy to AWS EC2') {
             steps {
                 script {
-                    // Install Apache or any necessary dependencies
-                    echo "Installing necessary dependencies..."
+                    // Archive and copy files to the EC2 instance
                     sh """
-                        sudo yum install -y httpd
+                        tar -czf webapp.tar.gz *
+                        scp -i /home/ec2-user/DevOps.pem webapp.tar.gz ec2-user@${EC2_PUBLIC_IP}:${WEB_DIR}
+                        ssh -i /home/ec2-user/DevOps.pem ec2-user@${EC2_PUBLIC_IP} "tar -xzf ${WEB_DIR}/webapp.tar.gz -C ${WEB_DIR}"
                     """
                 }
             }
         }
 
-        stage('Deploy Web Files') {
+        stage('Start Web Server') {
             steps {
                 script {
-                    // Copy your web files to the server's web directory
-                    echo "Deploying website files to web server directory..."
+                    // Use Python's simple HTTP server for demonstration
                     sh """
-                        sudo cp -r ${WORKSPACE}/* ${WEB_SERVER_PATH}/
-                    """
-                }
-            }
-        }
-
-        stage('Start/Restart Web Server') {
-            steps {
-                script {
-                    // Restart Apache web server to reflect the changes
-                    echo "Restarting Apache web server..."
-                    sh """
-                        sudo systemctl restart httpd
+                        ssh -i /home/ec2-user/DevOps.pem ec2-user@${EC2_PUBLIC_IP} "nohup python3 -m http.server ${DEPLOY_PORT} --directory ${WEB_DIR} &"
                     """
                 }
             }
@@ -54,10 +42,10 @@ pipeline {
 
     post {
         success {
-            echo "Webpage deployment successful! Visit your site to check."
+            echo "Deployment successful! Your webpage is live at http://${EC2_PUBLIC_IP}:${DEPLOY_PORT}/"
         }
         failure {
-            echo "Webpage deployment failed. Please check the logs for errors."
+            echo "Deployment failed. Check the logs for details."
         }
     }
 }
